@@ -2,7 +2,7 @@
 
 A full CRUD notice board built for **Reno Platforms** — a responsive web app that lets institutions post, edit, and manage community notices with category filters, urgency badges, and image support.
 
-**Live URL:** [https://hello-j5lljdu8u-surajkendre0089-2814s-projects.vercel.app/](https://hello-j5lljdu8u-surajkendre0089-2814s-projects.vercel.app/)
+**Live URL:** [https://noticeboard-git-main-surajkendre0089-2814s-projects.vercel.app/](https://noticeboard-git-main-surajkendre0089-2814s-projects.vercel.app/)
 
 ## Tech Stack
 
