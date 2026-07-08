@@ -31,7 +31,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const notice = await prisma.notice.update({
           where: { id },
-          data: result.data,
+          data: {
+            ...result.data,
+            publishDate: new Date(result.data.publishDate),
+          },
         })
         return res.status(200).json({ notice })
       }

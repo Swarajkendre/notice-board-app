@@ -4,7 +4,9 @@ export type SerializedNotice = {
   id: number
   title: string
   content: string
+  category: string
   isUrgent: boolean
+  publishDate: string
   imageUrl: string | null
   createdAt: string
   updatedAt: string

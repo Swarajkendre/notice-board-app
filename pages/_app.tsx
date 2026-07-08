@@ -14,7 +14,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>Notice Board — Reno Platforms</title>
         <meta
           name="description"
-          content="Post, edit, and manage community notices. Urgent notices always appear first."
+          content="Post, edit, and manage community notices. Filter by category, mark urgency, and attach images."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#ffffff" />

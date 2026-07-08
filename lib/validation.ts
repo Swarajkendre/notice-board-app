@@ -4,7 +4,9 @@
 export type NoticeInput = {
   title: string
   content: string
+  category: string
   isUrgent: boolean
+  publishDate: string
   imageUrl: string | null
 }
 
@@ -16,6 +18,7 @@ const TITLE_MIN = 3
 const TITLE_MAX = 150
 const CONTENT_MIN = 5
 const CONTENT_MAX = 5000
+const CATEGORIES = ["Exam", "Event", "General"]
 
 export function validateNotice(body: unknown): ValidationResult {
   const errors: Record<string, string> = {}
@@ -46,8 +49,29 @@ export function validateNotice(body: unknown): ValidationResult {
     errors.content = `Content must be ${CONTENT_MAX} characters or fewer.`
   }
 
+  // Category
+  const category = typeof raw.category === "string" ? raw.category : ""
+  if (!category) {
+    errors.category = "Category is required."
+  } else if (!CATEGORIES.includes(category)) {
+    errors.category = "Category must be one of: Exam, Event, General."
+  }
+
   // isUrgent (optional, defaults to false)
   const isUrgent = raw.isUrgent === true || raw.isUrgent === "true"
+
+  // publishDate
+  let publishDate: string
+  if (typeof raw.publishDate === "string" && raw.publishDate.trim()) {
+    const d = new Date(raw.publishDate)
+    if (isNaN(d.getTime())) {
+      errors.publishDate = "Publish date must be a valid date."
+    } else {
+      publishDate = d.toISOString()
+    }
+  } else {
+    publishDate = new Date().toISOString()
+  }
 
   // imageUrl (optional)
   let imageUrl: string | null = null
@@ -69,5 +93,5 @@ export function validateNotice(body: unknown): ValidationResult {
     return { valid: false, errors }
   }
 
-  return { valid: true, data: { title, content, isUrgent, imageUrl } }
+  return { valid: true, data: { title, content, category, isUrgent, publishDate, imageUrl } }
 }

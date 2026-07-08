@@ -18,7 +18,9 @@ export function NoticeFormDialog({ open, notice, onClose, onSaved }: Props) {
 
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [category, setCategory] = useState("General")
   const [isUrgent, setIsUrgent] = useState(false)
+  const [publishDate, setPublishDate] = useState("")
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -30,7 +32,9 @@ export function NoticeFormDialog({ open, notice, onClose, onSaved }: Props) {
     if (open) {
       setTitle(notice?.title ?? "")
       setContent(notice?.content ?? "")
+      setCategory(notice?.category ?? "General")
       setIsUrgent(notice?.isUrgent ?? false)
+      setPublishDate(notice?.publishDate ? new Date(notice.publishDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0])
       setImageUrl(notice?.imageUrl ?? null)
       setErrors({})
     }
@@ -74,7 +78,7 @@ export function NoticeFormDialog({ open, notice, onClose, onSaved }: Props) {
         {
           method: isEdit ? "PUT" : "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ title, content, isUrgent, imageUrl }),
+          body: JSON.stringify({ title, content, category, isUrgent, publishDate, imageUrl }),
         },
       )
 
@@ -161,6 +165,45 @@ export function NoticeFormDialog({ open, notice, onClose, onSaved }: Props) {
             />
             {errors.content && (
               <p className="text-xs text-destructive">{errors.content}</p>
+            )}
+          </div>
+
+          {/* Category */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="category" className="text-sm font-medium">
+              Category
+            </label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              aria-invalid={!!errors.category}
+              className="h-10 rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring aria-[invalid=true]:border-destructive"
+            >
+              <option value="General">General</option>
+              <option value="Exam">Exam</option>
+              <option value="Event">Event</option>
+            </select>
+            {errors.category && (
+              <p className="text-xs text-destructive">{errors.category}</p>
+            )}
+          </div>
+
+          {/* Publish Date */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="publishDate" className="text-sm font-medium">
+              Publish date
+            </label>
+            <input
+              id="publishDate"
+              type="date"
+              value={publishDate}
+              onChange={(e) => setPublishDate(e.target.value)}
+              aria-invalid={!!errors.publishDate}
+              className="h-10 rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring aria-[invalid=true]:border-destructive"
+            />
+            {errors.publishDate && (
+              <p className="text-xs text-destructive">{errors.publishDate}</p>
             )}
           </div>
 
