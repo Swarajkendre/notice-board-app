@@ -1,0 +1,159 @@
+import { useState } from "react"
+import { useRouter } from "next/router"
+import { Plus, Megaphone, AlertTriangle } from "lucide-react"
+import type { SerializedNotice } from "@/lib/types"
+import { NoticeCard } from "@/components/notice-card"
+import { NoticeFormDialog } from "@/components/notice-form-dialog"
+import { ConfirmDialog } from "@/components/confirm-dialog"
+
+type Props = {
+  initialNotices: SerializedNotice[]
+}
+
+export function NoticeBoard({ initialNotices }: Props) {
+  const router = useRouter()
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<SerializedNotice | null>(null)
+  const [deleting, setDeleting] = useState<SerializedNotice | null>(null)
+  const [deletePending, setDeletePending] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const urgentCount = initialNotices.filter((n) => n.isUrgent).length
+
+  function refresh() {
+    // Re-run getServerSideProps to pull the freshly ordered list from the DB.
+    router.replace(router.asPath, undefined, { scroll: false })
+  }
+
+  function openCreate() {
+    setEditing(null)
+    setFormOpen(true)
+  }
+
+  function openEdit(notice: SerializedNotice) {
+    setEditing(notice)
+    setFormOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return
+    setDeletePending(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/notices/${deleting.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to delete notice.")
+      }
+      setDeleting(null)
+      refresh()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Something went wrong.")
+    } finally {
+      setDeletePending(false)
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:py-10">
+          <div className="flex items-start gap-3">
+            <span className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Megaphone className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+                Notice Board
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                {initialNotices.length}{" "}
+                {initialNotices.length === 1 ? "notice" : "notices"}
+                {urgentCount > 0 && (
+                  <span className="text-destructive">
+                    {" · "}
+                    {urgentCount} urgent
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            New Notice
+          </button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        {initialNotices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Megaphone className="size-6" aria-hidden="true" />
+            </span>
+            <h2 className="mt-4 text-lg font-medium">No notices yet</h2>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
+              Create your first notice to share an announcement with everyone.
+            </p>
+            <button
+              type="button"
+              onClick={openCreate}
+              className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              New Notice
+            </button>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {initialNotices.map((notice) => (
+              <li key={notice.id}>
+                <NoticeCard
+                  notice={notice}
+                  onEdit={() => openEdit(notice)}
+                  onDelete={() => {
+                    setDeleteError(null)
+                    setDeleting(notice)
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <NoticeFormDialog
+        open={formOpen}
+        notice={editing}
+        onClose={() => setFormOpen(false)}
+        onSaved={() => {
+          setFormOpen(false)
+          refresh()
+        }}
+      />
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete this notice?"
+        description={
+          deleting
+            ? `"${deleting.title}" will be permanently removed. This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete"
+        pending={deletePending}
+        error={deleteError}
+        icon={<AlertTriangle className="size-5" aria-hidden="true" />}
+        onCancel={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+      />
+    </main>
+  )
+}
