@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
-import { Plus, Megaphone, AlertTriangle, Filter } from "lucide-react"
+import { Plus, Megaphone, AlertTriangle, Filter, Sun, Moon } from "lucide-react"
 import type { SerializedNotice } from "@/lib/types"
 import { NoticeCard } from "@/components/notice-card"
 import { NoticeFormDialog } from "@/components/notice-form-dialog"
@@ -24,6 +24,23 @@ export function NoticeBoard({ initialNotices }: Props) {
   const [deletePending, setDeletePending] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>("All")
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme")
+    const prefersDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    setDark(prefersDark)
+    document.documentElement.classList.toggle("dark", prefersDark)
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    setDark((prev) => {
+      const next = !prev
+      document.documentElement.classList.toggle("dark", next)
+      localStorage.setItem("theme", next ? "dark" : "light")
+      return next
+    })
+  }, [])
 
   const categories = [...new Set(initialNotices.map((n) => n.category))]
   const filtered = filterCategory === "All"
@@ -109,6 +126,14 @@ export function NoticeBoard({ initialNotices }: Props) {
                 </select>
               </div>
             )}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Toggle dark mode"
+              className="inline-flex size-10 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </button>
             <button
               type="button"
               onClick={openCreate}
