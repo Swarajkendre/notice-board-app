@@ -60,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Notice not found." })
     }
     console.error("[v0] /api/notices/[id] error:", error)
-    return res.status(500).json({ error: "Internal Server Error" })
+    const message = error instanceof Error ? error.message : "Unknown error"
+    return res.status(500).json({ error: "Internal Server Error", details: message })
   }
 }

@@ -35,7 +35,6 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
     }
   } catch (error) {
     console.error("[v0] getServerSideProps error:", error)
-    // Render an empty board if the DB is unreachable rather than crashing.
     return { props: { notices: [] } }
   }
 }
